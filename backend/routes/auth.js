@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const User = require('../schema/user.schema');
 const bcrypt = require('bcrypt');
-const saltRounds = 10;
 const jwt = require('jsonwebtoken');
+const saltRounds = 10;
 
 router.get('/', (req, res) => {
   // throw new Error(' This is a forced error');
@@ -11,16 +11,19 @@ router.get('/', (req, res) => {
 });
 
 router.post('/register', async (req, res) => {
+  console.log('reqBODYYY', req.body);
+
   try {
     const { name, email, password, confirmPassword } = req.body;
+    console.log('Parsed Data:', { name, email, password, confirmPassword });
     const userExists = await User.findOne({ email });
 
     if (userExists) {
-      return res.status(400).send('User already Exists');
+      return res.status(400).send.json('User already Exists');
     }
     // Server-side validation
     if (password !== confirmPassword) {
-      return res.status(400).json({ message: 'Passwords do not match' });
+      return res.status(400).send.json({ message: 'Passwords do not match' });
     }
     const salt = bcrypt.genSaltSync(saltRounds);
     const hash = bcrypt.hashSync(password, salt);
@@ -48,12 +51,12 @@ router.post('/login', async (req, res) => {
     const userExists = await User.findOne({ email });
 
     if (!userExists) {
-      return res.status(400).send('User already Exists');
+      return res.status(400).send.json('User already Exists');
     }
 
     const validPass = bcrypt.compareSync(password, userExists.password);
     if (!validPass) {
-      return res.status(400).send('email or password is wrong');
+      return res.status(400).send.json('email or password is wrong');
     }
     const token = jwt.sign({ _id: userExists._id }, process.env.TOKEN_SECRET);
     res.json({

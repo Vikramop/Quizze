@@ -5,6 +5,13 @@ const authRoute = require('./routes/auth');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const cors = require('cors');
+app.use(
+  cors({
+    origin: '*',
+  })
+);
+app.use(express.json());
 
 dotenv.config();
 const port = process.env.PORT || 5000;

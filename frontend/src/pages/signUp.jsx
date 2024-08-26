@@ -1,15 +1,31 @@
 import React, { useState } from 'react';
 import './SignUp.css';
+import { register, login } from '../services/auth';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 const SignUp = () => {
   const [activeTab, setActiveTab] = useState('signup');
 
+  const switchToLoginTab = () => {
+    setActiveTab('login');
+  };
+  const navigate = useNavigate();
   // Sign Up States
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [userData, setUserData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
 
+  const handleChange = (e) => {
+    setUserData({
+      ...userData,
+      [e.target.name]: e.target.value,
+    });
+  };
+  const [errorMessage, setErrorMessage] = useState('');
   const [signUpErrors, setSignUpErrors] = useState({
     name: false,
     email: false,
@@ -26,40 +42,102 @@ const SignUp = () => {
     password: false,
   });
 
-  const handleSignUpSubmit = (e) => {
+  const handleSignUpSubmit = async (e) => {
     e.preventDefault();
 
     const newErrors = {
-      name: name.trim() === '',
-      email: !/^\S+@\S+\.\S+$/.test(email),
-      password: password.length < 6,
-      confirmPassword: password !== confirmPassword,
+      name: userData.name.trim() === '',
+      email: !/^\S+@\S+\.\S+$/.test(userData.email),
+      password: userData.password.length < 6,
+      confirmPassword: userData.password !== userData.confirmPassword,
     };
 
     setSignUpErrors(newErrors);
 
-    // const isValid = !Object.values(newErrors).some((error) => error);
-    // if (isValid) {
-    //   // Submit form logic here
-    //   console.log('Sign Up form submitted successfully!');
-    // }
+    // If there are no errors
+    if (Object.values(newErrors).every((error) => !error)) {
+      try {
+        const { name, email, password, confirmPassword } = userData;
+
+        const response = await register({
+          name,
+          email,
+          password,
+          confirmPassword,
+        });
+
+        console.log(response.data);
+
+        // Clear form fields after successful registration
+        setUserData({
+          name: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+        });
+
+        toast.success('Registration successful! Please log in.');
+
+        switchToLoginTab();
+
+        setErrorMessage(''); // Clear any existing error message
+      } catch (error) {
+        // Use the error response message
+        const errorMsg = error.response
+          ? error.response.data.message
+          : error.message;
+
+        if (errorMsg === 'User already exists') {
+          setErrorMessage('User already registered. Please login.');
+        } else {
+          setErrorMessage('An error occurred. Please try again.');
+        }
+        console.error('Error:', errorMsg);
+      }
+    }
   };
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
 
     const newErrors = {
       email: !/^\S+@\S+\.\S+$/.test(loginEmail),
-      password: loginPassword.length < 6,
+      password: loginPassword.length < 4,
     };
 
     setLoginErrors(newErrors);
 
-    // const isValid = !Object.values(newErrors).some((error) => error);
-    // if (isValid) {
-    //   // Submit form logic here
-    //   console.log('Log In form submitted successfully!');
-    // }
+    // If there are no errors
+    if (Object.values(newErrors).every((error) => !error)) {
+      try {
+        const response = await login({
+          email: loginEmail,
+          password: loginPassword,
+        });
+
+        console.log(response.data);
+
+        // Handle successful login
+        toast.success('Login successful!');
+
+        navigate('/dashboard');
+      } catch (error) {
+        const errorMsg = error.response
+          ? error.response.data.message
+          : error.message;
+
+        // Show appropriate toast message based on error
+        if (errorMsg.includes('User not registered')) {
+          toast.error('User not registered. Please register first.');
+        } else if (errorMsg.includes('Incorrect email or password')) {
+          toast.error('Incorrect email or password. Please try again.');
+        } else {
+          toast.error('An error occurred. Please try again.');
+        }
+
+        console.error('Error:', errorMsg);
+      }
+    }
   };
 
   return (
@@ -90,8 +168,9 @@ const SignUp = () => {
                   <input
                     type="text"
                     id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    name="name"
+                    value={userData.name}
+                    onChange={handleChange}
                     className={signUpErrors.name ? 'error-input' : ''}
                   />
                   {signUpErrors.name && (
@@ -106,8 +185,9 @@ const SignUp = () => {
                   <input
                     type="email"
                     id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    name="email"
+                    value={userData.email}
+                    onChange={handleChange}
                     className={signUpErrors.email ? 'error-input' : ''}
                   />
                   {signUpErrors.email && (
@@ -121,8 +201,9 @@ const SignUp = () => {
                   <input
                     type="password"
                     id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    name="password"
+                    value={userData.password}
+                    onChange={handleChange}
                     className={signUpErrors.password ? 'error-input' : ''}
                   />
                   {signUpErrors.password && (
@@ -136,8 +217,9 @@ const SignUp = () => {
                   <input
                     type="password"
                     id="confirm-password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    name="confirmPassword"
+                    value={userData.confirmPassword}
+                    onChange={handleChange}
                     className={
                       signUpErrors.confirmPassword ? 'error-input' : ''
                     }
