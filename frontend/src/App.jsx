@@ -4,6 +4,7 @@ import SignUp from './pages/signUp';
 import Dashboard from './pages/Dashboard';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ProtectedRoute from './components/PrivateRoute';
 
 function App() {
   const isAuthenticated = localStorage.getItem('token');
@@ -13,12 +14,15 @@ function App() {
       <ToastContainer />
       <Routes>
         <Route path="/" element={<SignUp />} />
-        <Route
+        {/* <Route
           path="/dashboard"
           element={
             isAuthenticated ? <Dashboard /> : <Navigate to="/dashboard" />
           }
-        />
+        /> */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<SignUp />} />
+        </Route>
       </Routes>
     </div>
   );

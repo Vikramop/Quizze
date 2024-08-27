@@ -1,10 +1,15 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+// import React from 'react';
+// import { useSelector } from 'react-redux';
+// import { Navigate, useLocation } from 'react-router-dom';
 
-const PrivateRoute = ({ element: Element, ...rest }) => {
-  const isAuthenticated = !!localStorage.getItem('token'); // Check for authentication token
+// const ProtectedRoute = ({ children }) => {
+//   const user = useSelector((state) => state.user);
+//   let location = useLocation();
 
-  return isAuthenticated ? Element : <Navigate to="/dashboard" />;
-};
+//   if (!user.state.isAuthenticated) {
+//     return <Navigate to="/" state={{ from: location }} replace />;
+//   }
+//   return children;
+// };
 
-export default PrivateRoute;
+// export default ProtectedRoute;

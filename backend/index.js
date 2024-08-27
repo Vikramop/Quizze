@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const dotenv = require('dotenv');
 const authRoute = require('./routes/auth');
+const quizRoutes = require('./routes/quiz');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -11,12 +12,12 @@ app.use(
     origin: '*',
   })
 );
-app.use(express.json());
 
 dotenv.config();
 const port = process.env.PORT || 5000;
 // console.log(process.env);
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 app.get('/', (req, res) => {
   res.send('Hello');
@@ -33,6 +34,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/v1/auth', authRoute); //middleware
+app.use('/v1/quiz', quizRoutes); //middleware
 
 app.use((err, req, res, next) => {
   const reqString = `${req.method} ${req.url} ${Date.now()} ${err.message}\n`;
