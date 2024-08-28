@@ -9,14 +9,20 @@ const OptionSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['text', 'image', 'image and text'],
+      enum: ['text', 'image', 'text and image'],
       required: true,
     },
     text: {
       type: String,
+      required: function () {
+        return this.type === 'text' || this.type === 'text and image';
+      },
     },
     imageUrl: {
       type: String,
+      required: function () {
+        return this.type === 'image' || this.type === 'text and image';
+      },
     },
   },
   { timestamps: true }

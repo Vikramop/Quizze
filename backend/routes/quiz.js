@@ -6,19 +6,22 @@ const Option = require('../schema/option.schema');
 const jwt = require('jsonwebtoken');
 
 // Create a new quiz
-
+// Route to create a new quiz
 router.post('/quizzes', async (req, res) => {
   try {
-    // Assuming the token is passed in the Authorization header as Bearer token
     const token = req.headers.authorization.split(' ')[1];
     const decoded = jwt.verify(token, process.env.TOKEN_SECRET);
 
-    const userId = decoded._id; // Extract the userId from the decoded token
-    const { name } = req.body;
+    const userId = decoded._id;
 
+    const { name, questionType } = req.body;
+
+    // Create new quiz
     const newQuiz = new Quiz({
+      // userId: req.user._id, // Assuming user ID is available in req.user
       userId,
       name,
+      questionType,
     });
 
     await newQuiz.save();
@@ -27,6 +30,27 @@ router.post('/quizzes', async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
+
+// router.post('/quizzes', async (req, res) => {
+//   try {
+//     // Assuming the token is passed in the Authorization header as Bearer token
+//     const token = req.headers.authorization.split(' ')[1];
+//     const decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+
+//     const userId = decoded._id; // Extract the userId from the decoded token
+//     const { name } = req.body;
+
+//     const newQuiz = new Quiz({
+//       userId,
+//       name,
+//     });
+
+//     await newQuiz.save();
+//     res.status(201).json(newQuiz);
+//   } catch (err) {
+//     res.status(400).json({ message: err.message });
+//   }
+// });
 
 // Get all quizzes for a user
 router.get('/quizzes/:userId', async (req, res) => {

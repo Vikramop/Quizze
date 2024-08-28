@@ -2,13 +2,21 @@ import React, { useState } from 'react';
 import './Dashboard.css';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import QuizModal from '../components/QuizModal';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleTabClick = (tabName) => {
     setActiveTab(tabName);
   };
+
+  const handleCreateQuiz = (quizData) => {
+    // Call your API to create the quiz here
+    console.log('Creating quiz:', quizData);
+  };
+
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -39,7 +47,10 @@ const Dashboard = () => {
           </li>
           <li
             className={activeTab === 'createQuiz' ? 'active' : ''}
-            onClick={() => handleTabClick('createQuiz')}
+            onClick={() => {
+              handleTabClick('createQuiz');
+              setIsModalOpen(true);
+            }}
           >
             Create Quiz
           </li>
@@ -84,7 +95,13 @@ const Dashboard = () => {
       )}
 
       {activeTab === 'analytics' && <p>analytics</p>}
-      {activeTab === 'createQuiz' && <p>createQuiz</p>}
+      {activeTab === 'createQuiz' && (
+        <QuizModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onCreateQuiz={handleCreateQuiz}
+        />
+      )}
     </div>
   );
 };

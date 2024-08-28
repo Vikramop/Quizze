@@ -7,11 +7,6 @@ const QuestionSchema = new mongoose.Schema(
       ref: 'Quiz',
       required: true,
     },
-    type: {
-      type: String,
-      enum: ['MCQ', 'Poll'],
-      required: true,
-    },
     text: {
       type: String,
       required: true,

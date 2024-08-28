@@ -4,32 +4,60 @@ const Question = require('../schema/question.schema');
 const Option = require('../schema/option.schema');
 
 // Create a new question for a quiz
-router.post('/questions', async (req, res) => {
+// Route to create a question for a specific quiz
+router.post('/quizzes/:quizId/questions', async (req, res) => {
   try {
-    const { quizId, type, text, options } = req.body;
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    const userId = decoded._id;
 
-    const question = new Question({ quizId, type, text });
-    await question.save();
+    const { quizId } = req.params;
+    const { type, text, options } = req.body;
 
-    // Create options if provided
-    if (options && options.length > 0) {
-      const optionIds = await Promise.all(
-        options.map(async (optionData) => {
-          const option = new Option({
-            ...optionData,
-            questionId: question._id,
-          });
-          await option.save();
-          return option._id;
-        })
-      );
-      question.options = optionIds;
-      await question.save();
+    // Verify the quiz belongs to the authenticated user
+    const quiz = await Quiz.findOne({ _id: quizId, userId });
+    if (!quiz) {
+      return res
+        .status(404)
+        .json({ message: 'Quiz not found or you do not have permission.' });
     }
 
-    res.status(201).json(question);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    // Check if the quiz already has 5 questions
+    if (quiz.questions.length >= 5) {
+      return res
+        .status(400)
+        .json({ message: 'You can only add up to 5 questions.' });
+    }
+
+    // Create new question
+    const question = new Question({
+      quizId,
+      type,
+      text,
+    });
+
+    const savedQuestion = await question.save();
+
+    if (options && options.length) {
+      const optionPromises = options.map(async (optionData) => {
+        const option = new Option({
+          questionId: savedQuestion._id,
+          ...optionData,
+        });
+        return await option.save();
+      });
+      const savedOptions = await Promise.all(optionPromises);
+
+      savedQuestion.options = savedOptions.map((option) => option._id);
+      await savedQuestion.save();
+    }
+
+    quiz.questions.push(savedQuestion._id);
+    await quiz.save();
+
+    res.status(201).json(savedQuestion);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 
