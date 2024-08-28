@@ -94,8 +94,13 @@
   cursor: pointer;
 }
 
-.option.correct-option {
-  background-color: #90ee90; /* Light green background for correct option */
+.option.correct-option input {
+  background-color: #90ee90; /* Light green background for the entire input field */
+  color: black; /* Ensure text color contrasts with background */
+}
+
+.option.correct-option input::placeholder {
+  color: black; /* Ensure placeholder text color is readable on green background */
 }
 
 .side-by-side {
